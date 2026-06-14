@@ -6,7 +6,7 @@ import AddToCartSection from "@/components/store/AddToCartSection";
 import ProductGrid from "@/components/store/ProductGrid";
 import { Badge } from "@/components/ui";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 interface Params {
   params: Promise<{ slug: string }>;

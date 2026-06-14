@@ -7,7 +7,7 @@ import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 const PAGE_SIZE = 12;
 
 interface Params {

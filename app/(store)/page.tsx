@@ -5,7 +5,7 @@ import ProductGrid from "@/components/store/ProductGrid";
 import WhatsAppFloatingButton from "@/components/store/WhatsAppFloatingButton";
 import Link from "next/link";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 async function getHomeData() {
   const [categories, featuredProducts, settings] = await Promise.all([
