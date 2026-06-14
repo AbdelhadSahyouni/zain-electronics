@@ -8,16 +8,16 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 export const revalidate = 60;
-
 const PAGE_SIZE = 12;
 
 interface Params {
-  params: { slug: string };
-  searchParams: { page?: string; sort?: string };
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ page?: string; sort?: string }>;
 }
 
 export async function generateMetadata({ params }: Params) {
-  const category = await prisma.category.findUnique({ where: { slug: params.slug } });
+  const { slug } = await params;
+  const category = await prisma.category.findUnique({ where: { slug } });
   if (!category) return { title: "الفئة غير موجودة" };
   return {
     title: `${category.name} | زين العابدين للإلكترونيات`,
@@ -26,20 +26,20 @@ export async function generateMetadata({ params }: Params) {
 }
 
 export default async function CategoryPage({ params, searchParams }: Params) {
-  const page = Math.max(1, parseInt(searchParams.page || "1", 10));
-  const sort = searchParams.sort || "newest";
+  const { slug } = await params;
+  const { page: pageStr, sort: sortStr } = await searchParams;
+  const page = Math.max(1, parseInt(pageStr || "1", 10));
+  const sort = sortStr || "newest";
 
-  const category = await prisma.category.findUnique({ where: { slug: params.slug } });
+  const category = await prisma.category.findUnique({ where: { slug } });
   if (!category) notFound();
 
   const orderBy: Prisma.ProductOrderByWithRelationInput =
-    sort === "price-asc"
-      ? { price: "asc" }
-      : sort === "price-desc"
-      ? { price: "desc" }
-      : { createdAt: "desc" };
+    sort === "price-asc" ? { price: "asc" } :
+    sort === "price-desc" ? { price: "desc" } :
+    { createdAt: "desc" };
 
-  const where: Prisma.ProductWhereInput = { isActive: true, categoryId: category.id };
+  const where: Prisma.ProductWhereInput = { isActive: true, categoryId: category!.id };
 
   const [products, total, categories, totalAll] = await Promise.all([
     prisma.product.findMany({
@@ -61,47 +61,29 @@ export default async function CategoryPage({ params, searchParams }: Params) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Breadcrumb */}
       <p className="text-sm text-text-muted mb-4">
         <Link href="/" className="hover:text-primary">الرئيسية</Link>
         {" / "}
         <Link href="/products" className="hover:text-primary">المنتجات</Link>
         {" / "}
-        <span className="text-text-primary">{category.name}</span>
+        <span className="text-text-primary">{category!.name}</span>
       </p>
-
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Sidebar */}
         <aside className="lg:w-56 shrink-0">
           <div className="lg:sticky lg:top-20">
-            <CategorySidebar categories={categories} activeCategory={category.slug} totalCount={totalAll} />
+            <CategorySidebar categories={categories} activeCategory={category!.slug} totalCount={totalAll} />
           </div>
         </aside>
-
-        {/* Main content */}
         <div className="flex-1">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-text-primary">
-                {category.name}
-              </h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-text-primary">{category!.name}</h1>
               <p className="text-sm text-text-muted mt-1">{total} منتج متوفر</p>
             </div>
-
             <SortSelect defaultValue={sort} />
           </div>
-
-          <ProductGrid
-            products={products}
-            emptyMessage={`لا توجد منتجات في فئة "${category.name}" حالياً`}
-          />
-
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            basePath={`/category/${category.slug}`}
-            searchParams={{ sort: sort !== "newest" ? sort : undefined }}
-          />
+          <ProductGrid products={products} emptyMessage={`لا توجد منتجات في فئة "${category!.name}" حالياً`} />
+          <Pagination currentPage={page} totalPages={totalPages} basePath={`/category/${category!.slug}`} searchParams={{ sort: sort !== "newest" ? sort : undefined }} />
         </div>
       </div>
     </div>

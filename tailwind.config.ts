@@ -24,21 +24,6 @@ const config: Config = {
         arabic: ["Noto Sans Arabic", "sans-serif"],
         sans: ["Inter", "Noto Sans Arabic", "sans-serif"],
       },
-      animation: {
-        "pulse-ring": "pulse-ring 2s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite",
-        "cart-bounce": "cart-bounce 0.4s ease",
-      },
-      keyframes: {
-        "pulse-ring": {
-          "0%": { boxShadow: "0 0 0 0 rgba(37, 211, 102, 0.4)" },
-          "70%": { boxShadow: "0 0 0 12px rgba(37, 211, 102, 0)" },
-          "100%": { boxShadow: "0 0 0 0 rgba(37, 211, 102, 0)" },
-        },
-        "cart-bounce": {
-          "0%, 100%": { transform: "scale(1)" },
-          "50%": { transform: "scale(1.2)" },
-        },
-      },
     },
   },
   plugins: [],
