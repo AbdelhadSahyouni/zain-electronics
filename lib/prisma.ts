@@ -4,21 +4,16 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-function createPrismaClient() {
-  // Build connection URL safely, handling special chars in password
-  const rawUrl = process.env.DATABASE_URL || "";
-  
-  return new PrismaClient({
+const DATABASE_URL = process.env.DATABASE_URL || 
+  "postgresql://postgres.ovlyexxyalcdukdexvnl:A45%2B%26R_sZAUQ_mn@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true";
+
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
     datasources: {
-      db: {
-        url: rawUrl,
-      },
+      db: { url: DATABASE_URL },
     },
     log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
   });
-}
-
-export const prisma =
-  globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
