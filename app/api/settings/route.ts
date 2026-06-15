@@ -3,7 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/session";
 import { updateSettingsSchema } from "@/lib/validations";
 
-// GET /api/settings — public, returns site-wide settings
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     let settings = await prisma.siteSettings.findUnique({ where: { id: 1 } });
@@ -12,8 +13,10 @@ export async function GET() {
       settings = await prisma.siteSettings.create({
         data: {
           id: 1,
-          whatsappNumber: process.env.WHATSAPP_NUMBER || "96170000000",
+          whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "96170000000",
           storeName: "زين العابدين للإلكترونيات",
+          heroTitle: "زين العابدين للإلكترونيات",
+          heroSubtitle: "موزعون بالجملة للمحلات والتجار في لبنان",
         },
       });
     }
@@ -21,11 +24,13 @@ export async function GET() {
     return NextResponse.json({ settings });
   } catch (error) {
     console.error("GET /api/settings error:", error);
-    return NextResponse.json({ error: "حدث خطأ" }, { status: 500 });
+    return NextResponse.json(
+      { error: "حدث خطأ", details: String(error) },
+      { status: 500 }
+    );
   }
 }
 
-// PATCH /api/settings — admin only
 export async function PATCH(req: NextRequest) {
   const { errorResponse } = await requireAdmin();
   if (errorResponse) return errorResponse;
@@ -57,6 +62,6 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ settings });
   } catch (error) {
     console.error("PATCH /api/settings error:", error);
-    return NextResponse.json({ error: "حدث خطأ في الحفظ" }, { status: 500 });
+    return NextResponse.json({ error: "حدث خطأ في الحفظ", details: String(error) }, { status: 500 });
   }
 }
