@@ -1,7 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-
-const NEXTAUTH_SECRET = "aa80a9ee234f8863dd4b6889fa23c2f9f2426d0a90733c2ee640c3055b1a66d1";
+import { AUTH_SECRET } from "@/lib/auth";
 
 export default withAuth(
   function middleware(req) {
@@ -11,7 +10,7 @@ export default withAuth(
     return NextResponse.next();
   },
   {
-    secret: NEXTAUTH_SECRET,
+    secret: AUTH_SECRET,
     callbacks: {
       authorized: ({ req, token }) => {
         if (req.nextUrl.pathname === "/admin/login") return true;
