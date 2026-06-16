@@ -1,5 +1,6 @@
 export const revalidate = 60;
 
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -8,18 +9,20 @@ import AddToCartSection from "@/components/store/AddToCartSection";
 import ProductGrid from "@/components/store/ProductGrid";
 import { Badge } from "@/components/ui";
 
-
-
 interface Params {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata({ params }: Params) {
-  const { slug } = await params;
-  const product = await prisma.product.findUnique({
+const getProduct = cache(async (slug: string) => {
+  return prisma.product.findUnique({
     where: { slug },
     include: { category: true },
   });
+});
+
+export async function generateMetadata({ params }: Params) {
+  const { slug } = await params;
+  const product = await getProduct(slug);
   if (!product) return { title: "المنتج غير موجود" };
   return {
     title: `${product.name} | زين العابدين للإلكترونيات`,
@@ -29,10 +32,7 @@ export async function generateMetadata({ params }: Params) {
 
 export default async function ProductDetailPage({ params }: Params) {
   const { slug } = await params;
-  const product = await prisma.product.findUnique({
-    where: { slug },
-    include: { category: true },
-  });
+  const product = await getProduct(slug);
 
   if (!product || !product.isActive) notFound();
 

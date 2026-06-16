@@ -1,5 +1,6 @@
 export const revalidate = 60;
 
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import ProductGrid from "@/components/store/ProductGrid";
 import CategorySidebar from "@/components/store/CategorySidebar";
@@ -9,7 +10,6 @@ import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
-
 const PAGE_SIZE = 12;
 
 interface Params {
@@ -17,9 +17,15 @@ interface Params {
   searchParams: Promise<{ page?: string; sort?: string }>;
 }
 
+// Dedupe: this runs once per request even though both generateMetadata
+// and the page component call it (React cache() memoizes per-request).
+const getCategory = cache(async (slug: string) => {
+  return prisma.category.findUnique({ where: { slug } });
+});
+
 export async function generateMetadata({ params }: Params) {
   const { slug } = await params;
-  const category = await prisma.category.findUnique({ where: { slug } });
+  const category = await getCategory(slug);
   if (!category) return { title: "الفئة غير موجودة" };
   return {
     title: `${category.name} | زين العابدين للإلكترونيات`,
@@ -33,7 +39,7 @@ export default async function CategoryPage({ params, searchParams }: Params) {
   const page = Math.max(1, parseInt(pageStr || "1", 10));
   const sort = sortStr || "newest";
 
-  const category = await prisma.category.findUnique({ where: { slug } });
+  const category = await getCategory(slug);
   if (!category) notFound();
 
   const orderBy: Prisma.ProductOrderByWithRelationInput =
