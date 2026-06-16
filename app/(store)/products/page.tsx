@@ -5,7 +5,7 @@ import Pagination from "@/components/store/Pagination";
 import SortSelect from "@/components/store/SortSelect";
 import { Prisma } from "@prisma/client";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 const PAGE_SIZE = 12;
 
 export const metadata = {

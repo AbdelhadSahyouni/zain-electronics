@@ -1,3 +1,5 @@
+export const revalidate = 60;
+
 import { prisma } from "@/lib/prisma";
 import ProductGrid from "@/components/store/ProductGrid";
 import CategorySidebar from "@/components/store/CategorySidebar";
@@ -7,7 +9,7 @@ import { Prisma } from "@prisma/client";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
-export const dynamic = "force-dynamic";
+
 const PAGE_SIZE = 12;
 
 interface Params {

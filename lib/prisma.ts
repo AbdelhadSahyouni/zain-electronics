@@ -5,7 +5,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 const FALLBACK_DB_URL =
-  "postgresql://postgres.ovlyexxyalcdukdexvnl:A45%2B%26R_sZAUQ_mn@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1&pool_timeout=10";
+  "postgresql://postgres.ovlyexxyalcdukdexvnl:A45%2B%26R_sZAUQ_mn@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=5&pool_timeout=15";
 
 if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = FALLBACK_DB_URL;
