@@ -7,6 +7,8 @@ const nextConfig = {
         hostname: "res.cloudinary.com",
       },
     ],
+    deviceSizes: [360, 480, 640, 768, 1024, 1280, 1536],
+    imageSizes: [16, 32, 48, 64, 96, 128, 192, 256, 384],
     dangerouslyAllowSVG: true,
     contentDispositionType: "attachment",
   },
