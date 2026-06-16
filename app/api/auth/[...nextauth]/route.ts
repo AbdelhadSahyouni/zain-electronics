@@ -3,11 +3,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 
-// Inline auth config to avoid any env var timing issues
 const handler = NextAuth({
   secret: "aa80a9ee234f8863dd4b6889fa23c2f9f2426d0a90733c2ee640c3055b1a66d1",
   session: { strategy: "jwt", maxAge: 7200 },
-  pages: { signIn: "/admin/login", error: "/admin/login" },
+  pages: { signIn: "/admin/login" },
   providers: [
     CredentialsProvider({
       name: "credentials",
@@ -16,36 +15,52 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+        try {
+          if (!credentials?.email || !credentials?.password) {
+            console.error("AUTH: missing credentials");
+            return null;
+          }
 
-        const admin = await prisma.admin.findUnique({
-          where: { email: credentials.email },
-        });
+          const admin = await prisma.admin.findUnique({
+            where: { email: credentials.email },
+          });
 
-        if (!admin) return null;
+          if (!admin) {
+            console.error("AUTH: no admin found for", credentials.email);
+            return null;
+          }
 
-        if (admin.lockedUntil && admin.lockedUntil > new Date()) return null;
+          if (admin.lockedUntil && admin.lockedUntil > new Date()) {
+            console.error("AUTH: account locked");
+            return null;
+          }
 
-        const isValid = await bcrypt.compare(credentials.password, admin.passwordHash);
+          const isValid = await bcrypt.compare(credentials.password, admin.passwordHash);
 
-        if (!isValid) {
-          const failed = admin.failedLogins + 1;
+          if (!isValid) {
+            console.error("AUTH: invalid password");
+            const failed = admin.failedLogins + 1;
+            await prisma.admin.update({
+              where: { id: admin.id },
+              data: {
+                failedLogins: failed,
+                lockedUntil: failed >= 5 ? new Date(Date.now() + 900000) : null,
+              },
+            });
+            return null;
+          }
+
           await prisma.admin.update({
             where: { id: admin.id },
-            data: {
-              failedLogins: failed,
-              lockedUntil: failed >= 5 ? new Date(Date.now() + 900000) : null,
-            },
+            data: { failedLogins: 0, lockedUntil: null },
           });
+
+          console.log("AUTH: success for", admin.email);
+          return { id: String(admin.id), email: admin.email, name: admin.name };
+        } catch (err) {
+          console.error("AUTH: unexpected error", err);
           return null;
         }
-
-        await prisma.admin.update({
-          where: { id: admin.id },
-          data: { failedLogins: 0, lockedUntil: null },
-        });
-
-        return { id: String(admin.id), email: admin.email, name: admin.name };
       },
     }),
   ],
